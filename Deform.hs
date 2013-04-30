@@ -1,16 +1,20 @@
 module Deform   ( similars
                 , move
                 , document
+                , docId
                 , history
                 , printHistory
                 , content
                 , initializeExplorer
+                , replayHistory
                 , newExplorer
                 , indexFile
                 , main
                 , Explorer
                 , Similars
+                , Weight
                 , Document
+                , DocId
                 ) where
 
 import Index
@@ -56,10 +60,22 @@ explore e = do
     case maybeNext of
         Nothing -> putStrLn "That was fun" >> return e
         Just (_, next) -> 
-            explore (move e next)
+            explore (move next e)
+
+applyTransforms :: [(a -> a)] -> a -> a
+applyTransforms [] a = a
+applyTransforms (f:fs) a = a `seq` applyTransforms fs (f a)
+
+replayHistory :: [DocId] -> Explorer -> Explorer
+replayHistory ds e = 
+    let
+        i = index e
+        moves = fmap (move . getDocument i) ds
+    in
+        applyTransforms moves e
             
-move :: Explorer -> Document -> Explorer
-move e d = 
+move :: Document -> Explorer -> Explorer
+move d e = 
     let
         i' = ignoreDocument d . index $ e
     in e    { index = i'

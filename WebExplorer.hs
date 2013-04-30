@@ -1,21 +1,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 module WebExplorer where
 
-import            Control.Lens.Lens
-import            Control.Monad
-import            Control.Monad.IO.Class
-import            qualified Data.ByteString.Char8 as BS
-import            Data.Maybe
-import            qualified Data.Text as Text
-import            System.Random
-import            System.Directory
-import            System.FilePath
-import            Heist.Interpreted
-import            Snap.Core
-import            Snap.Http.Server
-import            Snap.Snaplet
-import            Snap.Snaplet.Heist.Interpreted
-import            Deform hiding (main)
+import Control.Lens.Lens
+import Control.Monad
+import Control.Monad.IO.Class
+import Data.Aeson
+import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS
+import Data.List.Split
+import qualified Data.Map as Map
+import Data.Maybe
+import qualified Data.Text as Text
+import System.Random
+import System.Directory
+import System.FilePath
+import Heist.Interpreted
+import Snap.Core
+import Snap.Http.Server
+import Snap.Snaplet
+import Snap.Snaplet.Heist.Interpreted
+import Deform hiding (main)
 
 type SnapApp = Snaplet (Heist App)
 
@@ -44,10 +48,41 @@ deformedHandler = do
     deformedId <- getParam "deformedId"
     let fileName = fmap BS.unpack deformedId
     text <- getParam "text"
+    hist <- getParam "history"
     explorer <- liftIO $ getExplorer fileName text "the"
     case explorer of
-        Just e -> writeBS . BS.pack . content . document $ e
-        Nothing -> writeBS "Error: No input"
+        Just e -> do
+            let explorer' = replay hist e
+            writeLBS . encodeExplorer $ explorer'
+        Nothing -> writeBS "{}"
+
+encodeExplorer :: Explorer -> LBS.ByteString
+encodeExplorer e =
+    let
+        sims = take 5 . similars $ e
+        mapSim (w, d) = toJSON $ Map.fromList 
+            ([ ("weight", toJSON w)
+            , ("content", toJSON $ content d)
+            , ("id", toJSON $ show . docId $ d)
+            ] :: [(Text, Value)])
+        mappedSims = toJSON . fmap mapSim $ sims
+        d = toJSON . content . document $ e
+        h = toJSON . history $ e
+        object = toJSON $ Map.fromList
+            ([ ("similars", mappedSims)
+            , ("document", d)
+            , ("history", h)
+            ] :: [(Text, Value)])
+    in
+        encode object
+
+replay :: Maybe BS.ByteString -> Explorer -> Explorer
+replay Nothing = id
+replay (Just h) = 
+    let 
+        hist = BS.unpack h
+        hs = fmap fst . concat . fmap reads . splitOn ":" $ hist
+    in replayHistory hs
 
 getExplorer :: Maybe FilePath 
     -> Maybe BS.ByteString 
