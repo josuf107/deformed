@@ -9,7 +9,6 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.List.Split
 import qualified Data.Map as Map
-import Data.Maybe
 import qualified Data.Text as Text
 import System.Random
 import System.Directory
@@ -63,18 +62,18 @@ encodeExplorer e =
         mapSim (w, d) = toJSON $ Map.fromList 
             ([ ("weight", toJSON w)
             , ("content", toJSON $ content d)
-            , ("id", toJSON $ show . docId $ d)
+            , ("id", toJSON . show . docId $ d)
             ] :: [(Text, Value)])
         mappedSims = toJSON . fmap mapSim $ sims
-        d = toJSON . content . document $ e
+        doc = toJSON . content . document $ e
         h = toJSON . history $ e
-        object = toJSON $ Map.fromList
+        explorer = toJSON $ Map.fromList
             ([ ("similars", mappedSims)
-            , ("document", d)
+            , ("document", doc)
             , ("history", h)
             ] :: [(Text, Value)])
     in
-        encode object
+        encode explorer
 
 replay :: Maybe BS.ByteString -> Explorer -> Explorer
 replay Nothing = id
@@ -87,7 +86,7 @@ replay (Just h) =
 getExplorer :: Maybe FilePath 
     -> Maybe BS.ByteString 
     -> String -> IO (Maybe Explorer)
-getExplorer Nothing _ s = return Nothing
+getExplorer Nothing _ _ = return Nothing
 getExplorer (Just f) Nothing s = do
     createDirectoryIfMissing True "texts"
     let fileName = "texts" </> f
