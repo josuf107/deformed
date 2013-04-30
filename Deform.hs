@@ -15,6 +15,7 @@ module Deform   ( similars
 
 import Index
 import Data.List (intersperse)
+import Data.Maybe
 import System.Environment
 import System.Directory
 
@@ -35,7 +36,7 @@ main = do
         else do
             i <- indexFile f
             let explorer = initializeExplorer i "the"
-            explorer' <- explore explorer
+            explorer' <- explore .fromJust $ explorer
             writeFile "history" (printHistory explorer')
 
 printHistory :: Explorer -> String
@@ -100,11 +101,14 @@ newExplorer f s = do
     goodf <- doesFileExist f
     if goodf then do
         i <- indexFile f
-        return . Just $ initializeExplorer i s
+        return $ initializeExplorer i s
     else return Nothing
 
-initializeExplorer :: Index -> String -> Explorer
+initializeExplorer :: Index -> String -> Maybe Explorer
 initializeExplorer i s = 
     let
-        d = snd . head . searchIndex i $ s
-    in Explorer i (take 20 $ computeSimilars i d) d []
+        start = searchIndex i s
+        d = if null start then Nothing else Just . snd . head $ start
+    in do
+        d' <- d
+        return $ Explorer i (take 20 $ computeSimilars i d') d' []

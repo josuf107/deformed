@@ -4,8 +4,12 @@ module WebExplorer where
 import            Control.Lens.Lens
 import            Control.Monad
 import            Control.Monad.IO.Class
+import            qualified Data.ByteString.Char8 as BS
+import            Data.Maybe
 import            qualified Data.Text as Text
 import            System.Random
+import            System.Directory
+import            System.FilePath
 import            Heist.Interpreted
 import            Snap.Core
 import            Snap.Http.Server
@@ -38,15 +42,34 @@ main = serveSnaplet defaultConfig appInit
 deformedHandler :: Handler App App ()
 deformedHandler = do
     deformedId <- getParam "deformedId"
+    let fileName = fmap BS.unpack deformedId
     text <- getParam "text"
-    maybe (writeBS "need text") writeBS text
-    writeBS " "
-    maybe (writeBS "Need id") writeBS deformedId
+    explorer <- liftIO $ getExplorer fileName text "the"
+    case explorer of
+        Just e -> writeBS . BS.pack . content . document $ e
+        Nothing -> writeBS "Error: No input"
+
+getExplorer :: Maybe FilePath 
+    -> Maybe BS.ByteString 
+    -> String -> IO (Maybe Explorer)
+getExplorer Nothing _ s = return Nothing
+getExplorer (Just f) Nothing s = do
+    createDirectoryIfMissing True "texts"
+    let fileName = "texts" </> f
+    newExplorer fileName s 
+getExplorer (Just f) (Just t) s = do
+    createDirectoryIfMissing True "texts"
+    let fileName = "texts" </> f
+    me <- newExplorer fileName s
+    case me of
+        Nothing -> do 
+            BS.writeFile fileName t
+            newExplorer fileName s
+        e -> return e
 
 entryHandler :: Handler App App ()
 entryHandler = do
-    g <- liftIO newStdGen
-    let hash = computeHash g
+    hash <- liftIO $ liftM computeHash newStdGen
     bind [("deformedId", Text.pack hash)] $ render "deform"
 
 computeHash :: RandomGen g => g -> String
