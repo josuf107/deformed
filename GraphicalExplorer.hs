@@ -12,6 +12,8 @@ main = display
     black
     picture
 
-picture = Translate (-170) (-10)
-    $ scale 0.5 0.5
-    $ Color white $ Text "hello"
+picture :: Picture
+picture = translate (-170) (-10)
+    . scale 0.5 0.5
+    . color white 
+    . text $ "hello"
