@@ -6,7 +6,6 @@ module Deform   ( similars
                 , content
                 , initializeExplorer
                 , indexFile
-                , main
                 , Explorer
                 , Similars
                 , Document
