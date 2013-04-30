@@ -20,7 +20,7 @@ import System.Directory
 data Explorer = Explorer    { index :: Index 
                             , similars :: Similars 
                             , document :: Document
-                            , history :: [Document]
+                            , history :: [DocId]
                             }
 
 main :: IO ()
@@ -38,7 +38,11 @@ main = do
             writeFile "history" (printHistory explorer')
 
 printHistory :: Explorer -> String
-printHistory = concat . intersperse "\n\n" . fmap content . history
+printHistory e = 
+    let
+        i = index e
+    in
+        concat . intersperse "\n\n" . fmap (content . getDocument i) . history $ e
 
 explore :: Explorer -> IO Explorer
 explore e = do
@@ -57,7 +61,7 @@ move e d =
         i' = ignoreDocument d . index $ e
     in e    { index = i'
             , similars = computeSimilars i' d
-            , history = (d:) . history $ e
+            , history = (docId d:) . history $ e
             , document = d}
 
 select :: Show a => [a] -> IO (Maybe a)

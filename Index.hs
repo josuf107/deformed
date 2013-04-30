@@ -3,10 +3,13 @@ module Index    ( content
                 , indexFile
                 , incrementIndex
                 , ignoreDocument
+                , getDocument
+                , docId
                 , searchIndex
                 , computeSimilars
                 , Index
                 , Document
+                , DocId
                 , Similars
                 , Weight
                 ) where
@@ -100,6 +103,9 @@ indexFile = liftM buildIndex . readFile
 
 incrementIndex :: Content -> Index -> Index
 incrementIndex c = computeTfIdf . addDocument (initializeDocument c)
+
+getDocument :: Index -> DocId -> Document
+getDocument i d = (Map.! d) . docStore . docs $ i 
 
 ignoreDocument :: Document -> Index -> Index
 ignoreDocument d i = 
