@@ -11,7 +11,7 @@ import            Snap.Core
 import            Snap.Http.Server
 import            Snap.Snaplet
 import            Snap.Snaplet.Heist.Interpreted
-import            Deform
+import            Deform hiding (main)
 
 type SnapApp = Snaplet (Heist App)
 

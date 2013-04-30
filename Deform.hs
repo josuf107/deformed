@@ -5,14 +5,15 @@ module Deform   ( similars
                 , printHistory
                 , content
                 , initializeExplorer
+                , newExplorer
                 , indexFile
+                , main
                 , Explorer
                 , Similars
                 , Document
                 ) where
 
 import Index
-import qualified Data.Map as Map
 import Data.List (intersperse)
 import System.Environment
 import System.Directory
@@ -70,7 +71,7 @@ select = selectPrint show
 
 selectPrint :: (a -> String) -> [a] -> IO (Maybe a)
 selectPrint pp xs = do
-    let labelledItems = zip [1..] $ xs
+    let labelledItems = zip [1..] xs
     let displayItem (n,s) = (n, show n ++ "> " ++ pp s)
     let displayItems = fmap displayItem labelledItems
     sequence_ . fmap (putStrLn . snd) $ displayItems
@@ -88,11 +89,19 @@ selectPrint pp xs = do
 
 readInt :: String -> Maybe Int
 readInt s = 
-    let i = (reads s) :: [(Int, String)]
+    let i = reads s :: [(Int, String)]
     in if null i then Nothing else Just . fst . head $ i
 
 printScored :: (Weight, Document) -> String
 printScored (w, d) = "[" ++ show w ++ "] " ++ content d
+
+newExplorer :: FilePath -> String -> IO (Maybe Explorer)
+newExplorer f s = do
+    goodf <- doesFileExist f
+    if goodf then do
+        i <- indexFile f
+        return . Just $ initializeExplorer i s
+    else return Nothing
 
 initializeExplorer :: Index -> String -> Explorer
 initializeExplorer i s = 
