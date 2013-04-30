@@ -41,8 +41,9 @@ printHistory :: Explorer -> String
 printHistory e = 
     let
         i = index e
+        getTexts = intersperse "\n\n" . fmap (content . getDocument i)
     in
-        concat . intersperse "\n\n" . fmap (content . getDocument i) . history $ e
+        concat . getTexts . history $ e
 
 explore :: Explorer -> IO Explorer
 explore e = do
