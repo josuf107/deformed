@@ -5,6 +5,12 @@
         src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
         </script>
         <style>
+            #currentParagraph, #nexts {
+                width : 60%;
+                margin-left: auto;
+                margin-right: auto;
+                font-size: 16pt;
+            }
             #nexts li div:hover {
                 cursor : pointer;
             }
