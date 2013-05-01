@@ -7,6 +7,8 @@ module Index    ( content
                 , docId
                 , searchIndex
                 , computeSimilars
+                , loadIndex
+                , saveIndex
                 , Index
                 , Document
                 , DocId
