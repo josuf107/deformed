@@ -18,6 +18,7 @@ module Deform   ( similars
                 ) where
 
 import Index
+import Control.Monad
 import Data.List (intersperse)
 import Data.Maybe
 import System.Environment
@@ -127,4 +128,5 @@ initializeExplorer i s =
         d = if null start then Nothing else Just . snd . head $ start
     in do
         d' <- d
-        return $ Explorer i (take 20 $ computeSimilars i d') d' []
+        i' <- return $ (ignoreDocument d') i
+        return $ Explorer i' (take 20 $ computeSimilars i' d') d' []

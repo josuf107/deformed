@@ -9,13 +9,16 @@ import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy.Char8 as LBS
 import Data.List.Split
 import qualified Data.Map as Map
+import Data.Maybe
 import qualified Data.Text as Text
+import Debug.Trace
 import System.Random
 import System.Directory
 import System.FilePath
 import Heist.Interpreted
 import Snap.Core
 import Snap.Http.Server
+import Snap.Util.FileServe
 import Snap.Snaplet
 import Snap.Snaplet.Heist.Interpreted
 import Deform hiding (main)
@@ -36,19 +39,35 @@ appInit = makeSnaplet "app" "" Nothing $ do
     modifyHeistState (bindStrings [("appRoot", "http://0.0.0.0:8000")])
     addRoutes   [ ("deform", entryHandler)
                 , ("deform/:deformedId", deformedHandler)
+                , ("deform/:deformedId/explorer", viewerHandler)
                 ]
     return $ App h
 
 main :: IO ()
 main = serveSnaplet defaultConfig appInit
 
+viewerHandler :: Handler App App ()
+viewerHandler = do
+    deformedId <- getParam "deformedId"
+    case deformedId of
+        Nothing -> errorPage
+        Just i -> bind [("deformedId", Text.pack . BS.unpack $ i)] $ 
+            render "viewer"
+
+errorPage :: Handler App App ()
+errorPage = writeBS "Error"
+
 deformedHandler :: Handler App App ()
 deformedHandler = do
+    modifyResponse (setContentType "text/javascript")
+    redir <- getParam "redir"
     deformedId <- getParam "deformedId"
-    let fileName = fmap BS.unpack deformedId
+    ps <- getParams
+    let fileName = (trace . show $ ps) fmap BS.unpack deformedId
     text <- getParam "text"
     hist <- getParam "history"
     explorer <- liftIO $ getExplorer fileName text "the"
+    when (isJust redir) $ (trace . BS.unpack . fromJust $ redir) redirect (fromJust redir)
     case explorer of
         Just e -> do
             let explorer' = replay hist e
