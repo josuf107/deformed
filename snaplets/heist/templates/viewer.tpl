@@ -8,6 +8,9 @@
             #nexts li div:hover {
                 cursor : pointer;
             }
+            #nexts li {
+                margin-top : 5px;
+            }
         </style>
     </head>
     <body>
@@ -30,11 +33,12 @@
             var endPoint = appRoot + "/deform/" + id;
             var history = "";
             var clicker = function () {
+                    $("#nexts").fadeOut(600);
+                    $("#currentParagraph").text($(this).text());
                     clickedKey = $(this).attr("id");
                     history = history + ":" + clickedKey;
                     $.getJSON(endPoint, {history: history}, 
                         function(data, status) {
-                        $("#currentParagraph").text(data["document"]);
                         var items = [];
                         $.each(data["similars"], function(value) {
                                 var item = data["similars"][value]
@@ -46,6 +50,7 @@
                         $.each($("#nexts li div"), function() {
                             $(this).click(clicker); 
                         });
+                        $("#nexts").fadeIn(200);
                     });
                 };
             $.getJSON(endPoint, function(data, status) {
