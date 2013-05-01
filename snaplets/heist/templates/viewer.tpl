@@ -39,8 +39,10 @@
             var endPoint = appRoot + "/deform/" + id;
             var history = "";
             var clicker = function () {
-                    $("#nexts").fadeOut(600);
-                    $("#currentParagraph").text($(this).text());
+                    $(this).parent().slideUp(function() {
+                        $("#nexts").fadeOut();
+                        $("#currentParagraph").text($(this).text());
+                    });
                     clickedKey = $(this).attr("id");
                     history = history + ":" + clickedKey;
                     $.getJSON(endPoint, {history: history}, 
