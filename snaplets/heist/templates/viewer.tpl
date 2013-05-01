@@ -40,7 +40,8 @@
             var history = "";
             var clicker = function () {
                     $(this).parent().slideUp(function() {
-                        $("#nexts").fadeOut();
+                        $("#nexts").fadeOut(function() {
+                            $("#nexts").show();});
                         $("#currentParagraph").text($(this).text());
                     });
                     clickedKey = $(this).attr("id");
