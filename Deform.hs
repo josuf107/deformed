@@ -8,6 +8,8 @@ module Deform   ( similars
                 , initializeExplorer
                 , replayHistory
                 , newExplorer
+                , loadExplorer
+                , saveExplorer
                 , indexFile
                 , main
                 , Explorer
@@ -112,6 +114,19 @@ readInt s =
 
 printScored :: (Weight, Document) -> String
 printScored (w, d) = "[" ++ show w ++ "] " ++ content d
+
+saveExplorer :: FilePath -> String -> IO ()
+saveExplorer f = saveIndex f . buildIndex
+
+loadExplorer :: FilePath -> String -> IO (Maybe Explorer)
+loadExplorer f s = do
+    goodf <- doesFileExist f
+    if goodf then do
+        i <- loadIndex f
+        case i of
+            Left _ -> return Nothing
+            Right i' -> return $ initializeExplorer i' s
+    else return Nothing
 
 newExplorer :: FilePath -> String -> IO (Maybe Explorer)
 newExplorer f s = do

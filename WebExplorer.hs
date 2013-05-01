@@ -117,15 +117,15 @@ getExplorer Nothing _ _ = return Nothing
 getExplorer (Just f) Nothing s = do
     createDirectoryIfMissing True "texts"
     let fileName = "texts" </> f
-    newExplorer fileName s 
+    loadExplorer fileName s 
 getExplorer (Just f) (Just t) s = do
     createDirectoryIfMissing True "texts"
     let fileName = "texts" </> f
-    me <- newExplorer fileName s
+    me <- loadExplorer fileName s
     case me of
         Nothing -> do 
-            BS.writeFile fileName t
-            newExplorer fileName s
+            saveExplorer fileName (BS.unpack t)
+            loadExplorer fileName s
         e -> return e
 
 entryHandler :: Handler App App ()
