@@ -36,7 +36,8 @@ instance HasHeist App where
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "" Nothing $ do
     h <- nestSnaplet "heist" heist $ heistInit "templates"
-    modifyHeistState (bindStrings [("appRoot", "http://0.0.0.0:8000")])
+    root <- liftM (Text.pack . BS.unpack) getSnapletRootURL
+    modifyHeistState (bindStrings [("appRoot", root)])
     addRoutes   [ ("deform", entryHandler)
                 , ("deform/:deformedId", deformedHandler)
                 , ("deform/:deformedId/explorer", viewerHandler)
