@@ -44,7 +44,15 @@ appInit = makeSnaplet "app" "" Nothing $ do
     return $ App h
 
 main :: IO ()
-main = serveSnaplet defaultConfig appInit
+main = serveSnaplet productionConfig appInit
+
+productionConfig :: MonadSnap m => Config m a
+productionConfig    = setBind "nullcanvas.com" 
+                    . setPort 8000
+                    $ defaultConfig
+
+debug :: IO ()
+debug = serveSnaplet defaultConfig appInit
 
 viewerHandler :: Handler App App ()
 viewerHandler = do
