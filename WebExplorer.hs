@@ -63,11 +63,11 @@ deformedHandler = do
     redir <- getParam "redir"
     deformedId <- getParam "deformedId"
     ps <- getParams
-    let fileName = (trace . show $ ps) fmap BS.unpack deformedId
+    let fileName = fmap BS.unpack deformedId
     text <- getParam "text"
     hist <- getParam "history"
     explorer <- liftIO $ getExplorer fileName text "the"
-    when (isJust redir) $ (trace . BS.unpack . fromJust $ redir) redirect (fromJust redir)
+    when (isJust redir) $ redirect (fromJust redir)
     case explorer of
         Just e -> do
             let explorer' = replay hist e

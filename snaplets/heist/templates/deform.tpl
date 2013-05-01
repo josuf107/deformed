@@ -14,7 +14,7 @@
         </div>
         <h1>Hello!</h1>
         <p>Enter some text:</p>
-        <form id=textForm action="${appRoot}/deform/${deformedId}">
+        <form id=textForm method=post action="${appRoot}/deform/${deformedId}">
             <textarea id=text name=text value="" rows=40 cols=120></textarea>
             <input type=hidden id=redir name="redir"
             value="${appRoot}/deform/${deformedId}/explorer"/>
