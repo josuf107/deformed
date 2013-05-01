@@ -39,9 +39,10 @@
             var endPoint = appRoot + "/deform/" + id;
             var history = "";
             var clicker = function () {
+                    $("#nexts").data("faded", false);
                     $(this).parent().slideUp(function() {
                         $("#nexts").fadeOut(function() {
-                            $("#nexts").show();});
+                            $("#nexts").data("faded", true);});
                         $("#currentParagraph").text($(this).text());
                     });
                     clickedKey = $(this).attr("id");
@@ -59,7 +60,12 @@
                         $.each($("#nexts li div"), function() {
                             $(this).click(clicker); 
                         });
-                        $("#nexts").fadeIn(200);
+                        int_id = setInterval(function () {
+                            if($("#nexts").data("faded")) {
+                                $("#nexts").fadeIn(200);
+                                clearInterval(int_id);
+                            }
+                        }, 1000);
                     });
                 };
             $.getJSON(endPoint, function(data, status) {
