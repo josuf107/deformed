@@ -125,7 +125,8 @@ getExplorer (Just f) (Just t) s = do
     me <- loadExplorer fileName s
     case me of
         Nothing -> do 
-            saveExplorer fileName (BS.unpack t)
+            let maxSize = 1000 * 1000 * 5
+            saveExplorer fileName (BS.unpack . BS.take maxSize $ t)
             loadExplorer fileName s
         e -> return e
 
