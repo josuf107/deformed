@@ -16,8 +16,10 @@ module Index    ( content
 
 import Control.Monad
 import Data.Char
+import qualified Data.ByteString as BS
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.Serialize as DS
 import Data.List (foldl')
 import Debug.Trace
 import Text.ParserCombinators.Parsec
@@ -45,6 +47,9 @@ data Index = Index  { docs :: DocStore
                     , dfs :: Dfs
                     , index :: InvertedIndex
                     } deriving Show
+type SerializedDoc = (Content, Vector, Vector, DocId, Weight, Bool)
+type SerializedDocStore = (Map.Map DocId SerializedDoc, DocId)
+type SerializedIndex = (SerializedDocStore, Dfs, InvertedIndex)
 
 applyTransforms :: [(a -> a)] -> a -> a
 applyTransforms [] a = a
@@ -97,6 +102,28 @@ emptyIndex = Index  { docs = emptyDocStore
                     , dfs = Map.empty
                     , index = Map.empty
                     }
+
+saveIndex :: FilePath -> Index -> IO ()
+saveIndex f = BS.writeFile f . DS.encode . serialize
+
+serialize :: Index -> SerializedIndex
+serialize (Index d dfs ii) = 
+    let
+        f (Document c v1 v2 did w v) = (c, v1, v2, did, w, v)
+        d' = (Map.map f . docStore $ d, nextId d)
+    in
+        (d', dfs, ii)
+
+loadIndex :: FilePath -> IO (Either String Index)
+loadIndex = (liftM . liftM) unserialize . liftM DS.decode . BS.readFile
+
+unserialize :: SerializedIndex -> Index
+unserialize ((ds,n), dfs, ii) =
+    let
+        f (c, v1, v2, did, w, v) = Document c v1 v2 did w v
+        d' = DocStore (Map.map f ds) n
+    in
+        Index d' dfs ii
 
 indexFile :: FilePath -> IO Index
 indexFile = liftM buildIndex . readFile
