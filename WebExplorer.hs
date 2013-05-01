@@ -49,7 +49,7 @@ main = serveSnaplet productionConfig appInit
 
 productionConfig :: MonadSnap m => Config m a
 productionConfig    = setBind "nullcanvas.com" 
-                    . setPort 8000
+                    . setPort 4000
                     $ defaultConfig
 
 debug :: IO ()
