@@ -16,6 +16,7 @@
         <p>Enter some text:</p>
         <form id=textForm method=post action="${appRoot}/deform/${deformedId}">
             <textarea id=text name=text value="" rows=40 cols=120></textarea>
+            <input type=text name=seed id=seed value="Enter seed">
             <input type=hidden id=redir name="redir"
             value="${appRoot}/deform/${deformedId}/explorer"/>
             <input type=submit value=explore>

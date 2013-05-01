@@ -58,10 +58,13 @@ debug = serveSnaplet defaultConfig appInit
 viewerHandler :: Handler App App ()
 viewerHandler = do
     deformedId <- getParam "deformedId"
+    seed <- getParam "seed"
+    let seed' = maybe "the" (Text.pack . BS.unpack) seed
     case deformedId of
         Nothing -> errorPage
-        Just i -> bind [("deformedId", Text.pack . BS.unpack $ i)] $ 
-            render "viewer"
+        Just i -> bind    [("deformedId", Text.pack . BS.unpack $ i)
+                          ,("seed", seed')
+                          ] $ render "viewer"
 
 errorPage :: Handler App App ()
 errorPage = writeBS "Error"
@@ -71,12 +74,14 @@ deformedHandler = do
     modifyResponse (setContentType "text/javascript")
     redir <- getParam "redir"
     deformedId <- getParam "deformedId"
-    ps <- getParams
     let fileName = fmap BS.unpack deformedId
     text <- getParam "text"
     hist <- getParam "history"
-    explorer <- liftIO $ getExplorer fileName text "the"
-    when (isJust redir) $ redirect (fromJust redir)
+    seed <- getParam "seed"
+    let seed' = maybe "the" BS.unpack seed
+    explorer <- liftIO $ getExplorer fileName text seed'
+    let toSeeded k = BS.concat [k, "?seed=", BS.pack seed']
+    when (isJust redir) $ redirect (toSeeded . fromJust $ redir)
     case explorer of
         Just e -> do
             let explorer' = replay hist e

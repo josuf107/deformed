@@ -20,6 +20,9 @@
         </style>
     </head>
     <body>
+        <div id=seed style="display:none">
+            <seed/>
+        </div>
         <div id=id style="display:none">
             <deformedId/>
         </div>
@@ -35,6 +38,7 @@
         </ol>
         <script>
             var id = $("#id").text().trim();
+            var seed = $("#seed").text().trim();
             var appRoot = $("#appRoot").text().trim();
             var endPoint = appRoot + "/deform/" + id;
             var history = "";
@@ -53,7 +57,7 @@
                     });
                     clickedKey = $(this).attr("id");
                     history = history + ":" + clickedKey;
-                    $.getJSON(endPoint, {history: history}, 
+                    $.getJSON(endPoint, {"seed":seed, "history": history},
                         function(data, status) {
                         var items = [];
                         $.each(data["similars"], function(value) {
@@ -65,18 +69,18 @@
                         $("#nexts").data("ready", true);
                         int_id = setInterval(function () {
                             if($("#nexts").data("faded")) {
+                                clearInterval(int_id);
                                 $("#nexts").hide();
                                 $("#nexts").html(items.join(''));
                                 $.each($("#nexts li div"), function() {
                                     $(this).click(clicker); 
                                 });
                                 $("#nexts").fadeIn(200);
-                                clearInterval(int_id);
                             }
                         }, 500);
                     });
                 };
-            $.getJSON(endPoint, function(data, status) {
+            $.getJSON(endPoint, {"seed":seed}, function(data, status) {
                 $("#currentParagraph").text(data["document"]);
                 var items = [];
                 $.each(data["similars"], function(value) {
