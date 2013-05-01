@@ -40,9 +40,15 @@
             var history = "";
             var clicker = function () {
                     $("#nexts").data("faded", false);
+                    $("#nexts").data("ready", false);
                     $(this).parent().slideUp(function() {
                         $("#nexts").fadeOut(function() {
-                            $("#nexts").data("faded", true);});
+                            if($("#nexts").data("ready")) {
+                                $("#nexts").data("faded", true);
+                            } else {
+                                $("#nexts").show();
+                                $("#nexts").html("<p>Loading...</p>");
+                                $("#nexts").data("faded", true);}});
                         $("#currentParagraph").text($(this).text());
                     });
                     clickedKey = $(this).attr("id");
@@ -56,16 +62,18 @@
                                 var t = item["content"];
                                 items.push("<li><div id=" + k + ">" + t + "</div></li>");
                             });
-                        $("#nexts").html(items.join(''));
-                        $.each($("#nexts li div"), function() {
-                            $(this).click(clicker); 
-                        });
+                        $("#nexts").data("ready", true);
                         int_id = setInterval(function () {
                             if($("#nexts").data("faded")) {
+                                $("#nexts").hide();
+                                $("#nexts").html(items.join(''));
+                                $.each($("#nexts li div"), function() {
+                                    $(this).click(clicker); 
+                                });
                                 $("#nexts").fadeIn(200);
                                 clearInterval(int_id);
                             }
-                        }, 1000);
+                        }, 500);
                     });
                 };
             $.getJSON(endPoint, function(data, status) {
