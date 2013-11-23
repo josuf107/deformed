@@ -15,6 +15,7 @@ import Debug.Trace
 import System.Random
 import System.Directory
 import System.FilePath
+import System.Environment
 import Heist.Interpreted
 import Snap.Core
 import Snap.Http.Server
@@ -45,11 +46,21 @@ appInit = makeSnaplet "app" "" Nothing $ do
     return $ App h
 
 main :: IO ()
-main = serveSnaplet productionConfig appInit
+main = do
+    args <- getArgs
+    dispatch args
 
-productionConfig :: MonadSnap m => Config m a
-productionConfig    = setBind "nullcanvas.com" 
-                    . setPort 4000
+dispatch :: [String] -> IO ()
+dispatch (host:port:_) =
+    case reads port of
+        ((portNum,_):_) ->
+                serveSnaplet (productionConfig host portNum) appInit
+        _ -> error "Run as WebExplorer host port (e.g. WebExplorer example.com 80)"
+dispatch _ = debug
+
+productionConfig :: MonadSnap m => String host -> Int port -> Config m a
+productionConfig host port = setBind host
+                    . setPort port
                     $ defaultConfig
 
 debug :: IO ()
