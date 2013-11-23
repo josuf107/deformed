@@ -58,8 +58,8 @@ dispatch (host:port:_) =
         _ -> error "Run as WebExplorer host port (e.g. WebExplorer example.com 80)"
 dispatch _ = debug
 
-productionConfig :: MonadSnap m => String host -> Int port -> Config m a
-productionConfig host port = setBind host
+productionConfig :: MonadSnap m => String -> Int -> Config m a
+productionConfig host port = setBind (BS.pack host)
                     . setPort port
                     $ defaultConfig
 
