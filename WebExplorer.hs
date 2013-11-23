@@ -17,6 +17,7 @@ import System.Directory
 import System.FilePath
 import System.Environment
 import Heist.Interpreted
+import Heist.SpliceAPI
 import Snap.Core
 import Snap.Http.Server
 import Snap.Util.FileServe
@@ -37,11 +38,10 @@ instance HasHeist App where
 appInit :: SnapletInit App App
 appInit = makeSnaplet "app" "" Nothing $ do
     h <- nestSnaplet "heist" heist $ heistInit "templates"
-    root <- liftM (Text.pack . BS.unpack) getSnapletRootURL
-    modifyHeistState (bindStrings [("appRoot", root)])
-    addRoutes   [ ("deform", entryHandler)
-                , ("deform/:deformedId", deformedHandler)
-                , ("deform/:deformedId/explorer", viewerHandler)
+    root <- liftM rootAt getSnapletRootURL
+    addRoutes   [ ("deform", root entryHandler)
+                , ("deform/:deformedId", root deformedHandler)
+                , ("deform/:deformedId/explorer", root viewerHandler)
                 ]
     return $ App h
 
@@ -65,6 +65,9 @@ productionConfig host port = setBind (BS.pack host)
 
 debug :: IO ()
 debug = serveSnaplet defaultConfig appInit
+
+rootAt :: BS.ByteString -> Handler App App () -> Handler App App ()
+rootAt r h = bind [("appRoot", Text.pack . BS.unpack $ r)] h
 
 viewerHandler :: Handler App App ()
 viewerHandler = do
@@ -161,4 +164,4 @@ computeHash =
 type Text = Text.Text
 
 bind :: HasHeist b => [(Text, Text)] -> Handler b v a -> Handler b v a
-bind ss = heistLocal (bindStrings ss)
+bind ss = heistLocal . bindStrings . sequence_ . fmap (uncurry (##)) $ ss
